@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>High or Low Roulette</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="container">
+    <h1>🎲 High or Low Roulette</h1>
+
+    <section class="controls">
+      <div class="choice-buttons">
+        <button id="highBtn">High</button>
+        <button id="lowBtn">Low</button>
+      </div>
+
+      <label for="spinCount">Number of Spins:</label>
+      <select id="spinCount">
+        <option value="1">1 Spin</option>
+        <option value="2">2 Spins</option>
+        <option value="3">3 Spins</option>
+        <option value="4">4 Spins</option>
+        <option value="5">5 Spins</option>
+      </select>
+
+      <button id="startBtn">Start Game</button>
+      <button id="resetBtn">Play Again</button>
+      <button id="toggleSound">🔊 Sound On</button>
+    </section>
+
+    <section class="result-area">
+      <div id="spinBoxes" class="spin-boxes"></div>
+      <div id="summaryDisplay" class="summary"></div>
+    </section>
+
+    <section class="history">
+      <h2>Past Results</h2>
+      <div id="pastResults" class="past-results"></div>
+    </section>
+
+    <audio id="spinSound" src="assets/spin.mp3" preload="auto"></audio>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

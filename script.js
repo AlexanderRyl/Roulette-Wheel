@@ -1,0 +1,91 @@
+const highBtn = document.getElementById("highBtn");
+const lowBtn = document.getElementById("lowBtn");
+const startBtn = document.getElementById("startBtn");
+const spinCountSelect = document.getElementById("spinCount");
+const spinBoxes = document.getElementById("spinBoxes");
+const pastResults = document.getElementById("pastResults");
+const spinSound = document.getElementById("spinSound");
+const summaryDisplay = document.getElementById("summaryDisplay");
+const resetBtn = document.getElementById("resetBtn");
+const toggleSound = document.getElementById("toggleSound");
+
+let selectedChoice = null;
+let soundEnabled = true;
+
+highBtn.addEventListener("click", () => selectChoice("high"));
+lowBtn.addEventListener("click", () => selectChoice("low"));
+toggleSound.addEventListener("click", () => {
+  soundEnabled = !soundEnabled;
+  toggleSound.textContent = soundEnabled ? "🔊 Sound On" : "🔇 Sound Off";
+});
+
+function selectChoice(choice) {
+  selectedChoice = choice;
+  highBtn.classList.toggle("active", choice === "high");
+  lowBtn.classList.toggle("active", choice === "low");
+}
+
+startBtn.addEventListener("click", async () => {
+  if (!selectedChoice) {
+    alert("Please select High or Low");
+    return;
+  }
+
+  const spinCount = parseInt(spinCountSelect.value);
+  const max = spinCount * 36;
+  const midpoint = Math.floor(max / 2);
+
+  spinBoxes.innerHTML = "";
+  summaryDisplay.textContent = "";
+  let wins = 0;
+  let losses = 0;
+
+  for (let i = 0; i < spinCount; i++) {
+    await playSpin();
+    const roll = Math.floor(Math.random() * max) + 1;
+    const result = roll > midpoint ? "high" : "low";
+    const win = result === selectedChoice;
+    if (win) wins++; else losses++;
+    addSpinResult(roll, win);
+    addToHistory(roll);
+  }
+
+  showSummary(wins, losses);
+});
+
+function playSpin() {
+  return new Promise((resolve) => {
+    if (soundEnabled) {
+      spinSound.currentTime = 0;
+      spinSound.play();
+    }
+    setTimeout(() => {
+      resolve();
+    }, 5000); // 5 seconds matches the spin sound duration
+  });
+}
+
+function addSpinResult(num, win) {
+  const box = document.createElement("div");
+  box.textContent = num;
+  box.classList.add(win ? "win" : "lose");
+  spinBoxes.appendChild(box);
+}
+
+function addToHistory(num) {
+  const bubble = document.createElement("div");
+  bubble.textContent = num;
+  pastResults.prepend(bubble);
+}
+
+function showSummary(wins, losses) {
+  summaryDisplay.textContent = `You got ${wins} win${wins !== 1 ? 's' : ''} and ${losses} loss${losses !== 1 ? 'es' : ''}.`;
+}
+
+resetBtn.addEventListener("click", () => {
+  spinBoxes.innerHTML = "";
+  summaryDisplay.textContent = "";
+  selectedChoice = null;
+  highBtn.classList.remove("active");
+  lowBtn.classList.remove("active");
+});
