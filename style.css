@@ -1,14 +1,12 @@
-/* Global resets & box-sizing */
+/* Reset & Box-sizing */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* Body background and centering */
 body {
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at top left,
-    #0a0a0a 0%, #1b1b1b 100%);
+  background: radial-gradient(circle at top left, #0a0a0a 0%, #1b1b1b 100%);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: #fff;
 }
@@ -18,20 +16,35 @@ body {
   animation: fadeIn 0.6s ease-in;
 }
 
-.wheel-container {
+.wheel-wrapper {
   position: relative;
-  width: 500px;
-  height: 500px;
+  width: 90vw;
+  max-width: 500px;
+  margin: 0 auto;
 }
 
-canvas {
+canvas#wheel {
+  display: block;
   width: 100%;
-  height: 100%;
+  padding-bottom: 100%; /* maintain square */
   border-radius: 50%;
   box-shadow: 0 0 20px rgba(0,0,0,0.8);
 }
 
-button {
+.pointer {
+  position: absolute;
+  top: -8%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 16px solid transparent;
+  border-right: 16px solid transparent;
+  border-bottom: 24px solid gold;
+  filter: drop-shadow(0 0 4px rgba(255,215,0,0.8));
+}
+
+button#spin-btn {
   margin-top: 20px;
   padding: 12px 24px;
   font-size: 1rem;
@@ -44,13 +57,13 @@ button {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-button:disabled {
+button#spin-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   box-shadow: none;
 }
 
-button:hover:not(:disabled) {
+button#spin-btn:hover:not(:disabled) {
   transform: translateY(-2px) scale(1.03);
   box-shadow: 0 6px 20px rgba(0,0,0,0.6);
 }
@@ -59,7 +72,7 @@ button:hover:not(:disabled) {
   margin-top: 16px;
   font-size: 1.25rem;
   min-height: 1.5em;
-  text-shadow: 0 0 10px #ffd700;
+  text-shadow: 0 0 10px gold;
 }
 
 @keyframes fadeIn {
