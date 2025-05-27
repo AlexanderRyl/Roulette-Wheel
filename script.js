@@ -1,137 +1,152 @@
-// Elements & Context Setup
+// Get elements
 const canvas = document.getElementById('wheel');
 const ctx = canvas.getContext('2d');
 const spinBtn = document.getElementById('spin-btn');
 const resultEl = document.getElementById('result');
+const ballEl = document.getElementById('ball');
 
-// Canvas sizing for high-DPI
-const SIZE = 500;
+// Constants & high-DPI setup
+const SIZE = 480;
 const DPR = window.devicePixelRatio || 1;
 canvas.width = SIZE * DPR;
 canvas.height = SIZE * DPR;
-canvas.style.width = '100%';
-canvas.style.height = '100%';
+canvas.style.width = `${SIZE}px`;
+canvas.style.height = `${SIZE}px`;
 ctx.scale(DPR, DPR);
 
-// Constants
-const CENTER = SIZE / 2;
+const CENTER = SIZE/2;
 const RADIUS = CENTER - 20;
 const POCKET_RAD = RADIUS - 10;
 const SEQ = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
-const RED_SET = new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
-const SLICE = (2 * Math.PI) / SEQ.length;
-const SPIN_TIME = 5000;
+const REDS = new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
+const SLICE = 2*Math.PI/SEQ.length;
+const SPIN_TIME = 5500;
 
 // State
-let wheelAngle = 0;
-let ballAngle = 0;
-let wheelVel = 0;
-let ballVel = 0;
+let wheelAng = 0, wheelVel = 0;
+let ballAng = 0, ballVel = 0, ballRad = POCKET_RAD;
 let spinning = false;
 
-// Draw Wheel
+// Draw the wheel with separators & glow
 function drawWheel() {
+  ctx.clearRect(0,0,SIZE,SIZE);
   ctx.save();
-  ctx.translate(CENTER, CENTER);
-  ctx.rotate(wheelAngle);
-  for (let i = 0; i < SEQ.length; i++) {
-    const n = SEQ[i];
-    const start = i * SLICE;
-    // Segment
-    ctx.beginPath();
-    ctx.fillStyle = n === 0 ? '#088' : RED_SET.has(n) ? '#c00' : '#111';
-    ctx.moveTo(0,0);
-    ctx.arc(0,0,RADIUS,start,start + SLICE);
-    ctx.fill();
-    // Number
-    ctx.save();
-      ctx.rotate(start + SLICE/2);
-      ctx.fillStyle = '#fff';
-      ctx.font = `bold ${Math.round(RADIUS*0.08)}px sans-serif`;
-      ctx.textAlign = 'right';
-      ctx.fillText(n, RADIUS - 15, 8);
-    ctx.restore();
-  }
+    ctx.translate(CENTER,CENTER);
+    ctx.rotate(wheelAng);
+    for (let i=0; i<SEQ.length; i++) {
+      const n = SEQ[i];
+      const start = i*SLICE;
+      // Fill segment
+      ctx.beginPath();
+      ctx.fillStyle = n===0 ? '#0a550a' : REDS.has(n) ? '#e20c0c' : '#222';
+      ctx.moveTo(0,0);
+      ctx.arc(0,0,RADIUS,start,start+SLICE);
+      ctx.fill();
+      // Separator line
+      ctx.strokeStyle = '#ccc';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(RADIUS*Math.cos(start), RADIUS*Math.sin(start));
+      ctx.lineTo((RADIUS-20)*Math.cos(start), (RADIUS-20)*Math.sin(start));
+      ctx.stroke();
+      // Number label
+      ctx.save();
+        ctx.rotate(start + SLICE/2);
+        ctx.fillStyle = '#fff';
+        ctx.font = `bold ${Math.round(RADIUS*0.07)}px sans-serif`;
+        ctx.textAlign = 'right';
+        ctx.fillText(n, RADIUS-25, 8);
+      ctx.restore();
+    }
   ctx.restore();
 }
 
-// Draw Ball
-function drawBall() {
-  const x = CENTER + ballRad * Math.cos(ballAngle);
-  const y = CENTER + ballRad * Math.sin(ballAngle);
-  ctx.beginPath();
-  ctx.fillStyle = '#fff';
-  ctx.arc(x,y,8,0,2*Math.PI);
-  ctx.fill();
+// Position ball DOM element
+function updateBall() {
+  const x = CENTER + ballRad*Math.cos(ballAng) - 8;
+  const y = CENTER + ballRad*Math.sin(ballAng) - 8;
+  ballEl.style.transform = `translate(${x}px, ${y}px)`;
 }
 
-// Clear
-function clearAll() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-}
-
-// Spin Logic
+// Spin animation
 function spin() {
   if (spinning) return;
   spinning = true;
   spinBtn.disabled = true;
-  resultEl.textContent = '';
+  resultEl.style.opacity = 0;
 
-  // Initialize velocities
-  wheelVel = 0.5 + Math.random()*0.3;
-  ballVel = -wheelVel * (RADIUS/(RADIUS-5)) * 1.2;
+  wheelVel = 0.6 + Math.random()*0.4;
+  ballVel = -wheelVel * (RADIUS/ballRad) * 1.3;
+  ballAng = Math.random()*2*Math.PI;
   ballRad = RADIUS - 5;
-  ballAngle = Math.random() * 2*Math.PI;
 
   const start = performance.now();
   let last = start;
 
-  function animate(now) {
+  function frame(now) {
     const dt = now - last;
     last = now;
     const elapsed = now - start;
-
-    // Slow down until SPIN_TIME, then drop
-    const decay = elapsed < SPIN_TIME ? 0.995 : 0.98;
+    const decay = elapsed < SPIN_TIME ? 0.996 : 0.985;
     wheelVel *= decay**(dt/16);
     ballVel *= decay**(dt/16);
-    if (elapsed >= SPIN_TIME) ballRad += (POCKET_RAD - ballRad)*0.05;
+    if (elapsed >= SPIN_TIME) ballRad += (POCKET_RAD - ballRad)*0.06;
 
-    // Update angles
-    wheelAngle += wheelVel*(dt/16);
-    ballAngle += ballVel*(dt/16);
+    wheelAng += wheelVel*(dt/16);
+    ballAng += ballVel*(dt/16);
 
-    clearAll();
     drawWheel();
-    drawBall();
+    updateBall();
 
-    if (elapsed < SPIN_TIME || Math.abs(ballVel) > 0.001) {
-      requestAnimationFrame(animate);
+    if (elapsed < SPIN_TIME || Math.abs(ballVel)>0.002) {
+      requestAnimationFrame(frame);
     } else {
-      finalize();
+      snapAndFinalize();
     }
   }
-  requestAnimationFrame(animate);
+  requestAnimationFrame(frame);
 }
 
-// Finalize
-function finalize() {
-  // Determine winning pocket
-  const rel = ((ballAngle - wheelAngle)%(2*Math.PI)+2*Math.PI)%(2*Math.PI);
-  const idx = Math.floor(rel/SLICE)%SEQ.length;
-  const num = SEQ[idx];
-  const color = num===0? 'green' : RED_SET.has(num)? 'red' : 'black';
+// Snap ball into exact pocket center and show result
+function snapAndFinalize() {
+  // Calculate pocket index
+  const rel = ((ballAng - wheelAng)%(2*Math.PI) + 2*Math.PI)%(2*Math.PI);
+  const idx = Math.floor(rel/SLICE) % SEQ.length;
+  const centerAng = idx*SLICE + SLICE/2;
+  const targetBallAng = wheelAng + centerAng;
 
-  resultEl.innerHTML = `Result: <span style="text-shadow:0 0 10px gold;">${num} (${color})</span>`;
+  // Animate snapping
+  const startAng = ballAng;
+  const delta = targetBallAng - ballAng;
+  const duration = 400;
+  const t0 = performance.now();
+
+  function snap(now) {
+    const p = Math.min((now - t0)/duration, 1);
+    ballAng = startAng + delta * easeOutQuad(p);
+    updateBall();
+    if (p < 1) requestAnimationFrame(snap);
+    else showResult(idx);
+  }
+  requestAnimationFrame(snap);
+}
+
+// Easing
+function easeOutQuad(t) {
+  return t*(2-t);
+}
+
+// Display final result
+function showResult(idx) {
+  const num = SEQ[idx];
+  const clr = num===0? 'green' : REDS.has(num)? 'red' : 'black';
+  resultEl.innerHTML = `Result: <span style="color:${clr}; text-shadow:0 0 14px ${clr};">${num.toString().padStart(2,'0')} (${clr})</span>`;
+  resultEl.style.animation = 'resultFade 1s ease forwards';
   spinning = false;
   spinBtn.disabled = false;
 }
 
-// Event Listener & Init
+// Init
 spinBtn.addEventListener('click', spin);
-clearAll();
 drawWheel();
-// Position ball initially
-ballRad = RADIUS - 5;
-ballAngle = 0;
-drawBall();
+updateBall();
