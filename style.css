@@ -1,30 +1,35 @@
-/* Reset & base */
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body, html { width: 100%; height: 100%; background: #0a0a0a; color: #eee; font-family: 'Segoe UI', sans-serif; }
-.casino-container { display: flex; flex-direction: column; align-items: center; padding: 20px; }
-header { width: 100%; max-width: 900px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-header h1 { font-size: 2rem; text-shadow: 0 0 8px #0f0; }
-.balance { font-size: 1.2rem; }
+/* Center container and make it responsive */
+#wheelContainer {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  margin: auto;
+}
 
-main { display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; }
-.wheel-area { position: relative; }
-#wheel { width: 500px; height: 500px; border-radius: 50%; box-shadow: 0 0 30px #0f0, inset 0 0 20px #050; background: #222; }
-.pointer { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); border-left: 15px solid transparent; border-right: 15px solid transparent; border-bottom: 30px solid #0f0; }
-.ball { position: absolute; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 0 8px #fff; pointer-events: none; }
-.btn { padding: 10px 20px; margin-top: 15px; background: #0f0; color: #000; border: none; border-radius: 8px; cursor: pointer; transition: transform .2s; }
-.btn:hover { transform: scale(1.05); }
-.btn.secondary { background: #555; color: #eee; }
+/* Make canvas fill its container width */
+canvas {
+  width: 100%;
+  height: auto;
+  display: block;
+}
 
-.betting-area { max-width: 380px; }
-.chips { display: flex; gap: 10px; margin-bottom: 15px; }
-.chip { background: #111; border: 2px solid #555; padding: 8px 12px; border-radius: 50%; cursor: pointer; }
-.chip.selected, .pocket.selected { border-color: #0f0; }
-.table { display: grid; grid-template-columns: repeat(3, 60px); grid-template-rows: repeat(12, 40px); gap: 4px; }
-.pocket { background: #222; display: flex; justify-content: center; align-items: center; cursor: pointer; border-radius: 4px; }
-.pocket[data-pocket="0"] { grid-column: span 3; background: #006600; }
-.pocket.red { background: #cc0000; }
-.pocket.black { background: #111; }
+/* Pointer arrow (a downward triangle) */
+#pointer {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-bottom: 20px solid #DAA520; /* golden color */
+}
 
-footer { margin-top: 20px; text-align: center; }
-#result { font-size: 1.5rem; margin-bottom: 10px; }
-#message { font-size: 1rem; }
+/* Display for spun number */
+#numberDisplay {
+  text-align: center;
+  font-size: 1.2em;
+  margin-top: 10px;
+  font-family: sans-serif;
+}
