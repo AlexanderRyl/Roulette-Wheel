@@ -1,52 +1,31 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Advanced Roulette</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1"> 
+  <title>Roulette Wheel Replica</title>
+  <style>
+    /* CSS styles (see next section) */
+  </style>
 </head>
 <body>
-  <div class="casino-container">
-    <header>
-      <h1>🎰 Advanced Roulette</h1>
-      <div class="balance">Balance: $<span id="balance">1000</span></div>
-    </header>
 
-    <main>
-      <section class="wheel-area">
-        <div class="pointer"></div>
-        <canvas id="wheel"></canvas>
-        <div id="ball" class="ball"></div>
-        <button id="spin-btn" class="btn">Spin</button>
-      </section>
+<div id="wheelContainer">
+  <!-- Canvas for the wheel graphic -->
+  <canvas id="wheelCanvas" width="500" height="500"></canvas>
+  <!-- CSS arrow indicator -->
+  <div id="pointer"></div>
+</div>
 
-      <section class="betting-area">
-        <div class="chips">
-          <button class="chip" data-value="1">$1</button>
-          <button class="chip" data-value="5">$5</button>
-          <button class="chip" data-value="25">$25</button>
-          <button class="chip" data-value="100">$100</button>
-        </div>
-        <div class="table">
-          <!-- grid of pockets 0-36 plus outside bets -->
-          <div class="pocket" data-pocket="0">0</div>
-          <!-- generate 1–36 in a 3×12 layout -->
-          <!-- outside bets: red/black, odd/even, 1–18/19–36 -->
-        </div>
-        <button id="clear-btn" class="btn secondary">Clear Bets</button>
-      </section>
-    </main>
+<!-- Display for the result number -->
+<div id="numberDisplay">Click the wheel to spin!</div>
 
-    <footer>
-      <div id="result"></div>
-      <div id="message"></div>
-    </footer>
+<!-- Placeholder audio elements for spin and result sounds -->
+<audio id="spinSound" src="spin.mp3"></audio>
+<audio id="winSound" src="win.mp3"></audio>
 
-    <!-- Sounds -->
-    <audio id="spin-sfx" src="spin.mp3" preload="auto"></audio>
-    <audio id="win-sfx" src="win.mp3" preload="auto"></audio>
-  </div>
-  <script src="script.js"></script>
+<script>
+  // JavaScript code (see below)
+</script>
 </body>
 </html>
