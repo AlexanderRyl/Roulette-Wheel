@@ -1,104 +1,152 @@
-(()=>{
-  const SEQ = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
-  const REDS = new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
-  const canvas = document.getElementById('wheel');
-  const ctx = canvas.getContext('2d');
-  const spinBtn = document.getElementById('spin-btn');
-  const resultEl = document.getElementById('result');
-  const messageEl = document.getElementById('message');
-  const balanceEl = document.getElementById('balance');
-  const spinSfx = document.getElementById('spin-sfx');
-  const winSfx = document.getElementById('win-sfx');
+// Get references to DOM elements
+const canvas = document.getElementById('wheelCanvas');
+const ctx = canvas.getContext('2d');
+const numberDisplay = document.getElementById('numberDisplay');
+const spinSound = document.getElementById('spinSound');
+const winSound = document.getElementById('winSound');
 
-  let balance = 1000;
-  let currentBet = null;
-  let bets = [];
+// Wheel configuration
+const numbers = [
+  "0","28","9","26","30","11","7","20","32","17",
+  "5","22","34","15","3","24","36","13","1","00",
+  "27","10","25","29","12","8","19","31","18","6",
+  "21","33","16","4","23","35","14","2"
+]; // standard American wheel order:contentReference[oaicite:9]{index=9}
 
-  // build pockets UI
-  const table = document.querySelector('.table');
-  SEQ.slice(1).forEach(n=>{
-    const el = document.createElement('div');
-    el.classList.add('pocket', REDS.has(n)?'red':'black');
-    el.dataset.pocket = n;
-    el.textContent = n;
-    table.appendChild(el);
-  });
-  document.querySelector('[data-pocket="0"]').addEventListener('click', e=>selectPocket(e));
-  table.addEventListener('click', e=>selectPocket(e));
+// Define colors for pockets
+const greenNumbers = new Set(["0", "00"]);
+const redNumbers = new Set([
+  "1","3","5","7","9","12","14","16","18","19","21","23","25","27","30","32","34","36"
+]);
+// The rest of the numbers are black (even numbers not in red list):contentReference[oaicite:10]{index=10}.
+function pocketColor(num) {
+  if (greenNumbers.has(num)) return "#008000"; // green
+  return redNumbers.has(num) ? "#B22222" : "#000000"; // red or black
+}
 
-  document.querySelectorAll('.chip').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      document.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));
-      btn.classList.add('selected');
-      currentBet = +btn.dataset.value;
-    });
-  });
+// Draw the roulette wheel (with given rotation offset)
+function drawWheel(rotation = 0) {
+  const cw = canvas.width;
+  const ch = canvas.height;
+  const cx = cw / 2;
+  const cy = ch / 2;
+  const outerRadius = Math.min(cx, cy) - 5; // leave a small margin
+  const innerRadius = outerRadius * 0.6; // inner circle radius
+  const centerRadius = outerRadius * 0.15; // center hub radius
+  const fontSize = Math.round(outerRadius * 0.07);
 
-  document.getElementById('clear-btn').addEventListener('click', ()=>{
-    bets=[]; document.querySelectorAll('.pocket').forEach(p=>p.classList.remove('selected'));
-    messageEl.textContent = '';
-  });
+  ctx.clearRect(0, 0, cw, ch);
+  ctx.save();
+  ctx.translate(cx, cy);
 
-  function selectPocket(e){
-    if (!currentBet) return alert('Select a chip first');
-    const pocket = +e.target.dataset.pocket;
-    if (balance < currentBet) return alert('Insufficient balance');
-    balance -= currentBet;
-    balanceEl.textContent = balance;
-    bets.push({pocket, amount: currentBet});
-    e.target.classList.add('selected');
-  }
+  // Compute arc size for each of 38 pockets
+  const pocketCount = numbers.length;
+  const arc = 2 * Math.PI / pocketCount;
+  // Offset so that "0" is centered at top (12 o'clock)
+  const baseOffset = -Math.PI/2 - arc/2; 
 
-  // wheel draw
-  const SIZE = 500, CENTER = SIZE/2, RADIUS = CENTER-20, SLICE = 2*Math.PI/SEQ.length;
-  canvas.width = SIZE; canvas.height = SIZE;
-  let angle=0, vel=0;
+  // Draw each segment
+  for (let i = 0; i < pocketCount; i++) {
+    const startAngle = baseOffset + i * arc + rotation;
+    const endAngle = startAngle + arc;
 
-  function draw(){
-    ctx.clearRect(0,0,SIZE,SIZE);
-    ctx.save(); ctx.translate(CENTER,CENTER); ctx.rotate(angle);
-    SEQ.forEach((n,i)=>{
-      const start = i*SLICE;
-      ctx.beginPath(); ctx.moveTo(0,0);
-      ctx.arc(0,0,RADIUS,start,start+SLICE);
-      ctx.fillStyle = n===0?'#006600':REDS.has(n)?'#cc0000':'#111'; ctx.fill();
-      ctx.strokeStyle='#333'; ctx.lineWidth=2;
-      ctx.moveTo(RADIUS*Math.cos(start),RADIUS*Math.sin(start));
-      ctx.lineTo((RADIUS-15)*Math.cos(start),(RADIUS-15)*Math.sin(start)); ctx.stroke();
-      ctx.save(); ctx.rotate(start+SLICE/2);
-      ctx.fillStyle='#fff'; ctx.font=`bold ${Math.round(RADIUS*0.07)}px sans-serif`;
-      ctx.textAlign='right'; ctx.fillText(n,RADIUS-20,8);
-      ctx.restore();
-    });
+    // Draw colored segment
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, outerRadius, startAngle, endAngle);
+    ctx.closePath();
+    ctx.fillStyle = pocketColor(numbers[i]);
+    ctx.fill();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "#333";
+    ctx.stroke();
+
+    // Draw the number label
+    ctx.save();
+    // Position text at middle of segment, oriented outward
+    const textAngle = startAngle + arc/2;
+    ctx.rotate(textAngle + Math.PI/2);
+    ctx.fillStyle = "#FFFFFF"; // white text for visibility
+    ctx.font = `${fontSize}px sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    // Place text near outer edge
+    ctx.fillText(numbers[i], (outerRadius * 0.85), 0);
     ctx.restore();
   }
-  draw();
 
-  spinBtn.addEventListener('click', ()=>{
-    if (bets.length===0) return alert('Place at least one bet');
-    spinSfx.play();
-    vel = 0.8 + Math.random()*0.4;
-    const start = performance.now(), decay=0.996;
-    function animate(now){
-      const dt=now-start;
-      vel *= decay**(dt/16);
-      angle += vel*(dt/16);
-      draw();
-      if (vel>0.002) requestAnimationFrame(animate);
-      else finalize();
+  // Draw inner circle (as decorative center)
+  ctx.beginPath();
+  ctx.arc(0, 0, innerRadius, 0, 2*Math.PI);
+  ctx.fillStyle = "#8B4513"; // brown/gold for inner circle
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = "#DAA520";
+  ctx.stroke();
+
+  // Draw center hub
+  ctx.beginPath();
+  ctx.arc(0, 0, centerRadius, 0, 2*Math.PI);
+  ctx.fillStyle = "#DAA520"; 
+  ctx.fill();
+  ctx.restore();
+}
+
+// Ease-out function for smooth deceleration
+function easeOut(t) {
+  return 1 - Math.pow(1 - t, 3);
+}
+
+// Spin animation: from startAngle to endAngle over given duration
+function animateSpin(startAngle, endAngle, duration, callback) {
+  const startTime = performance.now();
+  function frame(now) {
+    const elapsed = now - startTime;
+    if (elapsed < duration) {
+      const t = easeOut(elapsed / duration);
+      const currentAngle = startAngle + (endAngle - startAngle) * t;
+      drawWheel(currentAngle);
+      requestAnimationFrame(frame);
+    } else {
+      // Final frame
+      drawWheel(endAngle);
+      if (callback) callback();
     }
-    requestAnimationFrame(animate);
-  });
-
-  function finalize(){
-    const idx = Math.floor(((2*Math.PI-angle%(2*Math.PI))%(2*Math.PI))/SLICE);
-    const winNum = SEQ[idx];
-    resultEl.innerHTML = `Result: <strong>${winNum}</strong>`;
-    let payout=0;
-    bets.forEach(b=>{ if(b.pocket===winNum) payout += b.amount*35; });
-    if (payout>0){ balance+=payout; balanceEl.textContent=balance; messageEl.textContent=`You win $${payout}!`; winSfx.play(); }
-    else messageEl.textContent=`No wins this round.`;
-    bets=[];
-    document.querySelectorAll('.pocket').forEach(p=>p.classList.remove('selected'));
   }
-})();
+  requestAnimationFrame(frame);
+}
+
+// Spin logic: random result on click
+let spinning = false;
+canvas.addEventListener('click', () => {
+  if (spinning) return; // ignore if already spinning
+  spinning = true;
+  numberDisplay.textContent = ""; // clear previous result
+
+  // Play spin sound
+  spinSound.currentTime = 0;
+  spinSound.play();
+
+  // Pick a random pocket index
+  const pocketCount = numbers.length;
+  const randomIndex = Math.floor(Math.random() * pocketCount);
+  // Compute target rotation: we want the chosen number at the pointer (12 o'clock).
+  // With our offset, rotation = -index * arc (plus full rotations).
+  const arc = 2 * Math.PI / pocketCount;
+  const extraSpins = 3 + Math.floor(Math.random() * 3); // 3–5 full turns
+  const targetRotation = (-randomIndex * arc) + (2 * Math.PI * extraSpins);
+
+  // Animate from 0 to targetRotation over 4 seconds (4000 ms)
+  animateSpin(0, targetRotation, 4000, () => {
+    // After animation completes:
+    const result = numbers[randomIndex];
+    numberDisplay.textContent = "Result: " + result;
+    // Play win sound
+    winSound.currentTime = 0;
+    winSound.play();
+    spinning = false;
+  });
+});
+
+// Initial draw
+drawWheel(0);
