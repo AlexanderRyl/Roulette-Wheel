@@ -1,22 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Casino Roulette</title>
-  <link rel="stylesheet" href="styles.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced Roulette</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="container">
-    <div class="wheel-wrapper">
-      <div class="pointer"></div>
-      <canvas id="wheel"></canvas>
-      <div class="ball" id="ball"></div>
-    </div>
-    <button id="spin-btn">Spin the Wheel</button>
-    <div class="result" id="result"></div>
-    <!-- Audio SFX -->
-    <audio id="spin-audio" src="spin.mp3" preload="auto"></audio>
+  <div class="casino-container">
+    <header>
+      <h1>🎰 Advanced Roulette</h1>
+      <div class="balance">Balance: $<span id="balance">1000</span></div>
+    </header>
+
+    <main>
+      <section class="wheel-area">
+        <div class="pointer"></div>
+        <canvas id="wheel"></canvas>
+        <div id="ball" class="ball"></div>
+        <button id="spin-btn" class="btn">Spin</button>
+      </section>
+
+      <section class="betting-area">
+        <div class="chips">
+          <button class="chip" data-value="1">$1</button>
+          <button class="chip" data-value="5">$5</button>
+          <button class="chip" data-value="25">$25</button>
+          <button class="chip" data-value="100">$100</button>
+        </div>
+        <div class="table">
+          <!-- grid of pockets 0-36 plus outside bets -->
+          <div class="pocket" data-pocket="0">0</div>
+          <!-- generate 1–36 in a 3×12 layout -->
+          <!-- outside bets: red/black, odd/even, 1–18/19–36 -->
+        </div>
+        <button id="clear-btn" class="btn secondary">Clear Bets</button>
+      </section>
+    </main>
+
+    <footer>
+      <div id="result"></div>
+      <div id="message"></div>
+    </footer>
+
+    <!-- Sounds -->
+    <audio id="spin-sfx" src="spin.mp3" preload="auto"></audio>
+    <audio id="win-sfx" src="win.mp3" preload="auto"></audio>
   </div>
   <script src="script.js"></script>
 </body>
